@@ -20,7 +20,6 @@ class CounterController {
   void reset() {
     _counter = 0;
     _step = 0;
-    _step += 0;
     update_list("Reset");
   }
 
