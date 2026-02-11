@@ -10,6 +10,33 @@ class CounterView extends StatefulWidget {
 class _CounterViewState extends State<CounterView> {
   final CounterController _controller = CounterController();
 
+  dynamic showAlertDialog(BuildContext context) {
+    Widget cancelButton = TextButton(
+      child: Text("Tidak"),
+      onPressed: () => Navigator.of(context).pop(),
+    );
+    Widget continueButton = TextButton(
+      child: Text("Ya"),
+      onPressed: () {
+        _controller.reset();
+        Navigator.of(context).pop();
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("Reset"),
+      content: Text("Apakah kamu mau me-reset?"),
+      actions: [cancelButton, continueButton],
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,17 +73,23 @@ class _CounterViewState extends State<CounterView> {
       ),
       floatingActionButton: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FloatingActionButton(
             onPressed: () => setState(() => _controller.increment()),
+            backgroundColor: Color.fromARGB(255, 58, 183, 68),
             child: const Icon(Icons.add),
           ),
+          const SizedBox(width: 20),
           FloatingActionButton(
             onPressed: () => setState(() => _controller.decrement()),
-            child: const Icon(Icons.minimize),
+            backgroundColor: Color.fromARGB(255, 183, 58, 58),
+            child: const Icon(Icons.remove),
           ),
+          const SizedBox(width: 20),
           FloatingActionButton(
-            onPressed: () => setState(() => _controller.reset()),
+            onPressed: () => showAlertDialog(context),
+            backgroundColor: Color.fromARGB(255, 172, 172, 172),
             child: const Icon(Icons.restart_alt),
           ),
         ],
