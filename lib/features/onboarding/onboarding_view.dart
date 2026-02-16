@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/login_view.dart';
 
 class OnBoardingView extends StatefulWidget {
   const OnBoardingView({super.key});
@@ -9,6 +10,12 @@ class OnBoardingView extends StatefulWidget {
 class _OnBoardingViewState extends State<OnBoardingView> {
   int step = 1;
 
+  final List<String> onboardingImages = [
+    'lib/assets/Bottom G.png',
+    'lib/assets/Screenshot (668).png',
+    'lib/assets/Screenshot 2026-02-05 060146.png',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,13 +24,21 @@ class _OnBoardingViewState extends State<OnBoardingView> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
+            const Padding(
               padding: EdgeInsets.all(40),
               child: Text("Halaman Onboarding"),
             ),
-            Padding(padding: EdgeInsets.all(40), child: Text("$step")),
             Padding(
-              padding: EdgeInsets.all(40),
+              padding: const EdgeInsets.all(40),
+              child: Image.asset(
+                onboardingImages[step - 1],
+                height: 200,
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(40),
               child: ElevatedButton(
                 onPressed: () {
                   if (step < 3) {
@@ -31,10 +46,15 @@ class _OnBoardingViewState extends State<OnBoardingView> {
                       step++;
                     });
                   } else {
-                    print("Jump to Login!");
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginView(),
+                      ),
+                    );
                   }
                 },
-                child: Text("Lanjut"),
+                child: const Text("Lanjut"),
               ),
             ),
           ],
