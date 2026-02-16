@@ -3,10 +3,8 @@ import 'counter_controller.dart';
 import '../onboarding/onboarding_view.dart';
 
 class CounterView extends StatefulWidget {
-  // Tambahkan variabel final untuk menampung nama
   final String username;
 
-  // Update Constructor agar mewajibkan (required) kiriman nama
   const CounterView({super.key, required this.username});
 
   @override
@@ -16,18 +14,36 @@ class CounterView extends StatefulWidget {
 class _CounterViewState extends State<CounterView> {
   final CounterController _controller = CounterController();
 
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    await _controller.loadInitialData(widget.username);
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _tambahAngka() async {
+    await _controller.increment(widget.username);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Gunakan widget.username untuk menampilkan data dari kelas utama
         title: Text("Logbook: ${widget.username}"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // 1. Munculkan Dialog Konfirmasi
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
@@ -37,19 +53,14 @@ class _CounterViewState extends State<CounterView> {
                       "Apakah Anda yakin? Data yang belum disimpan mungkin akan hilang.",
                     ),
                     actions: [
-                      // Tombol Batal
                       TextButton(
-                        onPressed: () =>
-                            Navigator.pop(context), // Menutup dialog saja
+                        onPressed: () => Navigator.pop(context),
                         child: const Text("Batal"),
                       ),
-                      // Tombol Ya, Logout
                       TextButton(
                         onPressed: () {
-                          // Menutup dialog
                           Navigator.pop(context);
 
-                          // 2. Navigasi kembali ke Onboarding (Membersihkan Stack)
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -71,22 +82,50 @@ class _CounterViewState extends State<CounterView> {
           ),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Selamat Datang, ${widget.username}!"),
-            const SizedBox(height: 10),
-            const Text("Total Hitungan Anda:"),
-            Text(
-              '${_controller.value}',
-              style: Theme.of(context).textTheme.headlineLarge,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Selamat Datang, ${widget.username}!"),
+                  const SizedBox(height: 10),
+                  const Text("Total Hitungan Anda:"),
+                  Text(
+                    '${_controller.value}',
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Riwayat Aktivitas (Top 5):",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: _controller.tracked_list.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.history,
+                              color: Colors.blue,
+                            ),
+                            title: Text(
+                              _controller.tracked_list[index],
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => setState(() => _controller.increment()),
+        onPressed: _tambahAngka,
         child: const Icon(Icons.add),
       ),
     );
