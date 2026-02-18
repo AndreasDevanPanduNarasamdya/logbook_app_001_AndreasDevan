@@ -13,7 +13,6 @@ class CounterView extends StatefulWidget {
 
 class _CounterViewState extends State<CounterView> {
   final CounterController _controller = CounterController();
-
   bool _isLoading = true;
 
   @override
@@ -32,6 +31,19 @@ class _CounterViewState extends State<CounterView> {
   Future<void> _tambahAngka() async {
     await _controller.increment(widget.username);
     setState(() {});
+  }
+
+  String _getGreeting() {
+    var hour = DateTime.now().hour;
+    if (hour < 11) {
+      return "Selamat Pagi";
+    } else if (hour < 15) {
+      return "Selamat Siang";
+    } else if (hour < 18) {
+      return "Selamat Sore";
+    } else {
+      return "Selamat Malam";
+    }
   }
 
   @override
@@ -60,7 +72,6 @@ class _CounterViewState extends State<CounterView> {
                       TextButton(
                         onPressed: () {
                           Navigator.pop(context);
-
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
@@ -88,7 +99,14 @@ class _CounterViewState extends State<CounterView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Selamat Datang, ${widget.username}!"),
+                  Text(
+                    "${_getGreeting()}, ${widget.username}!",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
                   const SizedBox(height: 10),
                   const Text("Total Hitungan Anda:"),
                   Text(
