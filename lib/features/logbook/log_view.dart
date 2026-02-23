@@ -15,8 +15,8 @@ class _LogViewState extends State<LogView> {
   final LogController _titleController = LogController();
 
   void _showEditLogDialog(int index, LogModel log) {
-    _titleController.text = log.title;
-    _contentController.text = log.description;
+    // _titleController.text = log.title;
+    // _contentController.text = log.description;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -24,18 +24,18 @@ class _LogViewState extends State<LogView> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: _titleController),
-            TextField(controller: _contentController),
+            // TextField(controller: _titleController),
+            // TextField(controller: _contentController),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Batal")),
           ElevatedButton(
             onPressed: () {
-              _controller.updateLog(index, _titleController.text, _contentController.text);
-              _titleController.clear();
-              _contentController.clear();
-              Navigator.pop(context);
+              // _controller.updateLog(index, _titleController.text, _contentController.text);
+              // _titleController.clear();
+              // _contentController.clear();
+              // Navigator.pop(context);
             },
             child: const Text("Update"),
           ),
@@ -52,14 +52,14 @@ class _LogViewState extends State<LogView> {
         content: Column(
           mainAxisSize: MainAxisSize.min, // Agar dialog tidak memenuhi layar
           children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(hintText: "Judul Catatan"),
-            ),
-            TextField(
-              controller: _contentController,
-              decoration: const InputDecoration(hintText: "Isi Deskripsi"),
-            ),
+            // TextField(
+            //   controller: _titleController,
+            //   decoration: const InputDecoration(hintText: "Judul Catatan"),
+            // ),
+            // TextField(
+            //   controller: _contentController,
+            //   decoration: const InputDecoration(hintText: "Isi Deskripsi"),
+            // ),
           ],
         ),
         actions: [
@@ -69,19 +69,19 @@ class _LogViewState extends State<LogView> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Jalankan fungsi tambah di Controller
-              _controller.addLog(
-                _titleController.text, 
-                _contentController.text
-              );
+              // // Jalankan fungsi tambah di Controller
+              // _controller.addLog(
+              //   _titleController.text, 
+              //   _contentController.text
+              // );
               
-              // Trigger UI Refresh
-              setState(() {}); 
+              // // Trigger UI Refresh
+              // setState(() {}); 
               
-              // Bersihkan input dan tutup dialog
-              _titleController.clear();
-              _contentController.clear();
-              Navigator.pop(context);
+              // // Bersihkan input dan tutup dialog
+              // _titleController.clear();
+              // _contentController.clear();
+              // Navigator.pop(context);
             },
             child: const Text("Simpan"),
           ),
