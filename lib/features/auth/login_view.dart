@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_controller.dart';
-import '../logbook/counter_view.dart';
+import '../logbook/log_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -37,7 +37,7 @@ class _LoginViewState extends State<LoginView> {
       _failedAttempts = 0;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => CounterView(username: user)),
+        MaterialPageRoute(builder: (context) => LogView(username: user)),
       );
     } else {
       setState(() {

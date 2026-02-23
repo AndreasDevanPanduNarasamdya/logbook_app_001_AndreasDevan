@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './features/logbook/counter_view.dart';
+import 'features/logbook/log_view.dart';
 import './features/onboarding/onboarding_view.dart';
 
 void main() {
