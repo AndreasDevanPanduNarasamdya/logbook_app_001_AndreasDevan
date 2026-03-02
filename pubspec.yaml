@@ -66,6 +66,7 @@ flutter:
     - lib/assets/Bottom G.png
     - lib/assets/Screenshot (668).png
     - lib/assets/Screenshot 2026-02-05 060146.png
+    - lib/assets/contentsnotfound.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
