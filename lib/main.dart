@@ -1,51 +1,28 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:plssssgithub/services/mongo_service.dart';
-import 'package:plssssgithub/helpers/log_helper.dart';
+// Sesuaikan path ini dengan lokasi file LogView kamu!
+import './features/logbook/log_view.dart';
 
-void main() {
-  const String sourceFile = "connection_test.dart";
+void main() async {
+  // Wajib untuk operasi asinkron sebelum runApp
+  WidgetsFlutterBinding.ensureInitialized();
 
-  setUpAll(() async {
-    // Memuat env sekali di awal untuk semua test
-    await dotenv.load(fileName: ".env");
-  });
+  // Load ENV
+  await dotenv.load(fileName: ".env");
 
-  test(
-    'Memastikan koneksi ke MongoDB Atlas berhasil via MongoService',
-    () async {
-      final mongoService = MongoService();
+  runApp(const MyApp());
+}
 
-      // Memanfaatkan LogHelper baru yang sudah pakai dev.log dan print berwarna
-      await LogHelper.writeLog(
-        "--- START CONNECTION TEST ---",
-        source: sourceFile,
-      );
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-      try {
-        // Mengetes koneksi
-        await mongoService.connect();
-
-        // Ekspektasi: URI tidak null dan koneksi berhasil
-        expect(dotenv.env['MONGODB_URI'], isNotNull);
-
-        await LogHelper.writeLog(
-          "SUCCESS: Koneksi Atlas Terverifikasi",
-          source: sourceFile,
-          level: 2, // INFO (Hijau)
-        );
-      } catch (e) {
-        await LogHelper.writeLog(
-          "ERROR: Kegagalan koneksi - $e",
-          source: sourceFile,
-          level: 1, // ERROR (Merah)
-        );
-        fail("Koneksi gagal: $e");
-      } finally {
-        // Selalu tutup koneksi agar tidak menggantung di dashboard Atlas
-        await mongoService.close();
-        await LogHelper.writeLog("--- END TEST ---", source: sourceFile);
-      }
-    },
-  );
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Logbook App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const LogView(username: 'Admin'),
+    );
+  }
 }
