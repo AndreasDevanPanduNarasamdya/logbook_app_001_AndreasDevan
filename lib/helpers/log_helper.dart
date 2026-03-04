@@ -1,14 +1,14 @@
 import 'dart:developer' as dev;
 import 'package:intl/intl.dart'; // Tetap kita gunakan untuk presisi waktu
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:io';
 
 class LogHelper {
   static Future<void> writeLog(
     String message, {
-    String source = "Unknown", // Menandakan file/proses asal
+    String source = "Unknown",
     int level = 2,
   }) async {
-    // 1. Filter Konfigurasi (ENV)
     final int configLevel = int.tryParse(dotenv.env['LOG_LEVEL'] ?? '2') ?? 2;
     final String muteList = dotenv.env['LOG_MUTE'] ?? '';
 
@@ -16,17 +16,27 @@ class LogHelper {
     if (muteList.split(',').contains(source)) return;
 
     try {
-      // 2. Format Waktu untuk Konsol
-      String timestamp = DateFormat('HH:mm:ss').format(DateTime.now());
+      String timeStr = DateFormat('HH:mm:ss').format(DateTime.now());
+      String dateStr = DateFormat(
+        'dd-MM-yyyy',
+      ).format(DateTime.now()); // TASK 4: Format Nama File
       String label = _getLabel(level);
       String color = _getColor(level);
 
-      // 3. Output ke VS Code Debug Console (Non-blocking)
-      dev.log(message, name: source, time: DateTime.now(), level: level * 100);
+      String logText = '[$timeStr][$label][$source] -> $message';
 
-      // 4. Output ke Terminal (Agar Bapak bisa lihat di PC saat flutter run)
-      // Format: [14:30:05] [INFO] [log_view.dart] -> Database Terhubung
-      print('$color[$timestamp][$label][$source] -> $message\x1B[0m');
+      // 1. Output ke Debug Console
+      dev.log(message, name: source, time: DateTime.now(), level: level * 100);
+      print('$color$logText\x1B[0m');
+
+      // 2. TASK 4: Tulis ke File Fisik di folder /logs
+      final directory = Directory('logs');
+      if (!await directory.exists()) {
+        await directory.create();
+      }
+
+      final file = File('logs/$dateStr.log');
+      await file.writeAsString('$logText\n', mode: FileMode.append);
     } catch (e) {
       dev.log("Logging failed: $e", name: "SYSTEM", level: 1000);
     }
@@ -48,11 +58,11 @@ class LogHelper {
   static String _getColor(int level) {
     switch (level) {
       case 1:
-        return '\x1B[31m'; // Merah
+        return '\x1B[31m';
       case 2:
-        return '\x1B[32m'; // Hijau
+        return '\x1B[32m';
       case 3:
-        return '\x1B[34m'; // Biru
+        return '\x1B[34m';
       default:
         return '\x1B[0m';
     }

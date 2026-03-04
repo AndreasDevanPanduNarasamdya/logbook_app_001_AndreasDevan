@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'log_controller.dart';
 import '../onboarding/onboarding_view.dart';
 import './models/log_model.dart';
+import 'package:intl/intl.dart';
 
 class LogView extends StatefulWidget {
   final String username;
@@ -173,51 +174,76 @@ class _LogViewState extends State<LogView> {
             child: ValueListenableBuilder<List<LogModel>>(
               valueListenable: _controller.filteredLogs,
               builder: (context, currentLogs, child) {
+                // TASK 3: Loading State atau Empty State
                 if (currentLogs.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'lib/assets/contentsnotfound.png',
-                          width: 200,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          "Belum ada catatan.",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  ); // Atau gambar contentsnotfound.png
                 }
-                return ListView.builder(
-                  itemCount: currentLogs.length,
-                  itemBuilder: (context, index) {
-                    final log = currentLogs[index];
-                    return Card(
-                      color: _getCategoryColor(log.category),
-                      child: ListTile(
-                        leading: const Icon(Icons.note),
-                        title: Text(log.title),
-                        subtitle: Text(log.description),
-                        trailing: Wrap(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _showEditLogDialog(index, log),
+
+                // HOMEWORK: Pull-to-Refresh
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    try {
+                      await _controller.loadFromDisk();
+                    } catch (e) {
+                      // HOMEWORK: Connection Guard (Offline Warning)
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "Koneksi terputus! Anda sedang offline.",
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                _controller.removeLog(index);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
                   },
+                  child: ListView.builder(
+                    itemCount: currentLogs.length,
+                    itemBuilder: (context, index) {
+                      final log = currentLogs[index];
+
+                      // HOMEWORK: Timestamp Formatting (Contoh: 25 Jan 2026)
+                      DateTime parsedDate = DateTime.parse(log.date);
+                      String formattedDate = DateFormat(
+                        'dd MMM yyyy, HH:mm',
+                      ).format(parsedDate);
+
+                      return Card(
+                        color: _getCategoryColor(log.category),
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.cloud_done,
+                            color: Colors.green,
+                          ),
+                          title: Text(log.title),
+                          // Menampilkan deskripsi dan waktu yang sudah diformat
+                          subtitle: Text("${log.description}\n$formattedDate"),
+                          isThreeLine: true,
+                          trailing: Wrap(
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () => _showEditLogDialog(index, log),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _controller.removeLog(index),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),
