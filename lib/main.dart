@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// Sesuaikan path ini dengan lokasi file LogView kamu!
-import './features/logbook/log_view.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // BARU
+import './features/onboarding/onboarding_view.dart';
+import './features/logbook/models/log_model.dart'; // BARU
 
 void main() async {
-  // Wajib untuk operasi asinkron sebelum runApp
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Load ENV
   await dotenv.load(fileName: ".env");
+
+  // --- INISIALISASI HIVE ---
+  await Hive.initFlutter();
+  Hive.registerAdapter(LogModelAdapter());
+  await Hive.openBox<LogModel>('logbookBox');
 
   runApp(const MyApp());
 }
@@ -22,7 +25,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Logbook App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const LogView(username: 'Admin'),
+      home: const OnBoardingView(),
     );
   }
 }

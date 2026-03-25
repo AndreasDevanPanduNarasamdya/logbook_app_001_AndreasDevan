@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_controller.dart';
 import '../logbook/log_view.dart';
+import '../auth/user_model.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -31,13 +32,16 @@ class _LoginViewState extends State<LoginView> {
       return;
     }
 
-    bool isSuccess = _controller.login(user, pass);
+    // --- BARIS YANG DIPERBAIKI: Gunakan UserModel?, bukan bool ---
+    UserModel? loggedInUser = _controller.login(user, pass);
 
-    if (isSuccess) {
+    if (loggedInUser != null) {
       _failedAttempts = 0;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LogView(username: user)),
+        MaterialPageRoute(
+          builder: (context) => LogView(currentUser: loggedInUser),
+        ),
       );
     } else {
       setState(() {

@@ -1,10 +1,20 @@
-class LoginController {
-  final Map<String, String> _users = {"admin": "123"};
+import 'user_model.dart';
 
-  bool login(String username, String password) {
-    if (_users.containsKey(username) && _users[username] == password) {
-      return true;
+class LoginController {
+  // Simulasi Database User (Gatekeeper Modul 5)
+  final List<UserModel> _users = [
+    UserModel(username: "admin", role: "Ketua", teamId: "TEAM_A"),
+    UserModel(username: "andrew", role: "Anggota", teamId: "TEAM_A"),
+  ];
+
+  UserModel? login(String username, String password) {
+    // Demi simulasi, password kita abaikan dulu, cek username saja
+    try {
+      return _users.firstWhere(
+        (u) => u.username == username && password == "123",
+      );
+    } catch (e) {
+      return null; // Login gagal
     }
-    return false;
   }
 }
