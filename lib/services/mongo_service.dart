@@ -29,7 +29,6 @@ class MongoService {
     return _collection!;
   }
 
-  /// Inisialisasi Koneksi ke MongoDB Atlas
   Future<void> connect() async {
     try {
       final dbUri = dotenv.env['MONGODB_URI'];
@@ -37,9 +36,8 @@ class MongoService {
 
       _db = await Db.create(dbUri);
 
-      // Timeout 15 detik agar lebih toleran terhadap jaringan seluler
       await _db!.open().timeout(
-        const Duration(seconds: 15),
+        const Duration(seconds: 3),
         onTimeout: () {
           throw Exception(
             "Koneksi Timeout. Cek IP Whitelist (0.0.0.0/0) atau Sinyal HP.",
@@ -83,7 +81,7 @@ class MongoService {
         source: _source,
         level: 1,
       );
-      return [];
+      rethrow;
     }
   }
 

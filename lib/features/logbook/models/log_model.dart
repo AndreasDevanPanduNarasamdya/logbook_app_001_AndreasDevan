@@ -1,39 +1,57 @@
 import 'package:mongo_dart/mongo_dart.dart';
 
 class LogModel {
-  final ObjectId? id; // Penanda unik global dari MongoDB
+  final ObjectId? id;
   final String title;
   final String date;
   final String description;
   final String category;
+  bool isSynced;
 
   LogModel({
     this.id,
     required this.title,
     required this.date,
     required this.description,
-    this.category = 'Pribadi', // Default kategori
+    this.category = 'Pribadi',
+    this.isSynced = true,
   });
 
-  // Membongkar data dari Cloud menjadi objek Flutter
   factory LogModel.fromMap(Map<String, dynamic> map) {
+    var rawId = map['_id'];
+    ObjectId? parsedId;
+    bool isFromCloud = false;
+
+    if (rawId is ObjectId) {
+      parsedId = rawId;
+      isFromCloud = true;
+    } else if (rawId is String && rawId.length == 24) {
+      try {
+        parsedId = ObjectId.fromHexString(rawId);
+      } catch (e) {
+        parsedId = null;
+      }
+    }
+
     return LogModel(
-      id: map['_id'] as ObjectId?,
+      id: parsedId,
       title: map['title'] ?? '',
       date: map['date'] ?? '',
       description: map['description'] ?? '',
       category: map['category'] ?? 'Pribadi',
+
+      isSynced: isFromCloud ? true : (map['isSynced'] ?? true),
     );
   }
 
-  // Memasukkan data ke Map (BSON) untuk dikirim ke Cloud
   Map<String, dynamic> toMap() {
     return {
-      '_id': id ?? ObjectId(), // Buat ID otomatis jika belum ada
+      '_id': id ?? ObjectId(),
       'title': title,
       'date': date,
       'description': description,
       'category': category,
+      'isSynced': isSynced,
     };
   }
 }

@@ -71,8 +71,8 @@ class _LogViewState extends State<LogView> {
                 child: const Text("Batal"),
               ),
               ElevatedButton(
-                onPressed: () {
-                  _controller.updateLog(
+                onPressed: () async {
+                  await _controller.updateLog(
                     index,
                     _titleController.text,
                     _contentController.text,
@@ -80,13 +80,43 @@ class _LogViewState extends State<LogView> {
                   );
                   _titleController.clear();
                   _contentController.clear();
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text("Update"),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  void _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Hapus Catatan?"),
+        content: const Text(
+          "Apakah kamu yakin ingin menghapus catatan ini? Data tidak bisa dikembalikan.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              await _controller.removeLog(index); // Jalankan fungsi hapus
+              if (context.mounted) {
+                Navigator.pop(context); // Tutup popup
+              }
+            },
+            child: const Text("Hapus", style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -137,15 +167,17 @@ class _LogViewState extends State<LogView> {
                 child: const Text("Batal"),
               ),
               ElevatedButton(
-                onPressed: () {
-                  _controller.addLog(
+                onPressed: () async {
+                  await _controller.addLog(
                     _titleController.text,
                     _contentController.text,
                     selectedCategory,
                   );
                   _titleController.clear();
                   _contentController.clear();
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text("Simpan"),
               ),
@@ -162,6 +194,28 @@ class _LogViewState extends State<LogView> {
       appBar: AppBar(title: const Text("LogBook: Versi SRP")),
       body: Column(
         children: [
+          ValueListenableBuilder<bool>(
+            valueListenable: _controller.isOffline,
+            builder: (context, isOffline, child) {
+              if (!isOffline)
+                return const SizedBox.shrink(); // Hilang jika online
+
+              return Container(
+                width: double.infinity,
+                color: Colors.red,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: const Text(
+                  "Mode Offline: Menunggu Koneksi Internet...",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              );
+            },
+          ),
           Padding(
             padding: const EdgeInsets.all(8),
             child: TextField(
@@ -174,26 +228,52 @@ class _LogViewState extends State<LogView> {
             child: ValueListenableBuilder<List<LogModel>>(
               valueListenable: _controller.filteredLogs,
               builder: (context, currentLogs, child) {
-                // TASK 3: Loading State atau Empty State
                 if (currentLogs.isEmpty) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  ); // Atau gambar contentsnotfound.png
+                  // Cek apakah kosong karena database benar-benar kosong,
+                  // ATAU karena hasil pencarian tidak menemukan kecocokan.
+                  final isDatabaseEmpty =
+                      _controller.logsNotifier.value.isEmpty;
+
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          isDatabaseEmpty
+                              ? 'lib/assets/contentsmissing.png'
+                              : 'lib/assets/contentsnotfound.png',
+                          width: isDatabaseEmpty ? 80 : 200,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          isDatabaseEmpty
+                              ? "Belum ada catatan."
+                              : "Catatan tidak ditemukan.",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 }
 
-                // HOMEWORK: Pull-to-Refresh
                 return RefreshIndicator(
                   onRefresh: () async {
                     try {
+                      // Nanti kita ganti ini untuk fetch dari MongoDB
                       await _controller.loadFromDisk();
                     } catch (e) {
-                      // HOMEWORK: Connection Guard (Offline Warning)
+                      // Print error aslinya ke terminal!
+                      print("ERROR SAAT REFRESH: $e");
+
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Koneksi terputus! Anda sedang offline.",
-                            ),
+                          SnackBar(
+                            // Tampilkan pesan error aslinya di layar untuk sementara
+                            content: Text("Error: $e"),
                             backgroundColor: Colors.red,
                           ),
                         );
@@ -205,7 +285,6 @@ class _LogViewState extends State<LogView> {
                     itemBuilder: (context, index) {
                       final log = currentLogs[index];
 
-                      // HOMEWORK: Timestamp Formatting (Contoh: 25 Jan 2026)
                       DateTime parsedDate = DateTime.parse(log.date);
                       String formattedDate = DateFormat(
                         'dd MMM yyyy, HH:mm',
@@ -214,12 +293,11 @@ class _LogViewState extends State<LogView> {
                       return Card(
                         color: _getCategoryColor(log.category),
                         child: ListTile(
-                          leading: const Icon(
-                            Icons.cloud_done,
-                            color: Colors.green,
+                          leading: Icon(
+                            log.isSynced ? Icons.cloud_done : Icons.cloud_off,
+                            color: log.isSynced ? Colors.green : Colors.grey,
                           ),
                           title: Text(log.title),
-                          // Menampilkan deskripsi dan waktu yang sudah diformat
                           subtitle: Text("${log.description}\n$formattedDate"),
                           isThreeLine: true,
                           trailing: Wrap(
@@ -236,7 +314,7 @@ class _LogViewState extends State<LogView> {
                                   Icons.delete,
                                   color: Colors.red,
                                 ),
-                                onPressed: () => _controller.removeLog(index),
+                                onPressed: () => _confirmDelete(index),
                               ),
                             ],
                           ),
