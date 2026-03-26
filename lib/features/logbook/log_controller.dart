@@ -15,9 +15,7 @@ class LogController {
   final Box<LogModel> _logBox = Hive.box<LogModel>('logbookBox');
 
   LogController() {
-    loadFromDisk().then((_) {
-      // Tunggu load lokal selesai, baru tarik dari Cloud
-    });
+    loadFromDisk().then((_) {});
 
     InternetConnectionChecker.instance.onStatusChange.listen((status) {
       if (status == InternetConnectionStatus.connected ||
@@ -25,7 +23,7 @@ class LogController {
         if (isOffline.value == true) {
           isOffline.value = false;
           print("Internet kembali! Memulai auto-sync...");
-          // fetchLogs(teamId) akan dipanggil dari View nanti
+          syncOfflineLogs();
         }
       } else {
         isOffline.value = true;
@@ -133,9 +131,16 @@ class LogController {
     } catch (e) {
       for (var log in unsyncedLogs) {
         log.isSynced = false;
-        log.save();
+        try {
+          log.save();
+        } catch (_) {} // Aman untuk Hive
       }
       isOffline.value = true;
+
+      // --- TAMBAHKAN 2 BARIS INI: Paksa UI refresh jadi abu-abu ---
+      logsNotifier.value = List.from(logsNotifier.value);
+      filteredLogs.value = List.from(filteredLogs.value);
+
       print("Masih offline, sinkronisasi tertunda.");
     }
   }

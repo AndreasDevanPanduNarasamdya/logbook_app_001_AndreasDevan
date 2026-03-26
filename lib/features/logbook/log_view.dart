@@ -182,10 +182,30 @@ class _LogViewState extends State<LogView> {
               valueListenable: _controller.filteredLogs,
               builder: (context, currentLogs, child) {
                 if (currentLogs.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "Belum ada catatan.",
-                      style: TextStyle(color: Colors.grey),
+                  final isDatabaseEmpty =
+                      _controller.logsNotifier.value.isEmpty;
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          isDatabaseEmpty
+                              ? 'lib/assets/contentsmissing.png'
+                              : 'lib/assets/contentsnotfound.png',
+                          width: isDatabaseEmpty ? 80 : 200,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          isDatabaseEmpty
+                              ? "Belum ada catatan nih."
+                              : "Catatan tidak ditemukan.",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }
